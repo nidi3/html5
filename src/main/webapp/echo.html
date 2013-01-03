@@ -1,0 +1,86 @@
+<html>
+<body>
+<span id="msg"> </span>
+
+<div id="screen"
+     style="position: relative; border:1px solid black; height: 600px; width: 800px; background-color: black"
+     onmousemove="move(event)">
+    <div id="f0"
+         style="position: absolute; background-color: white; height: 10px; width: 50px; left: 300px; top: 40px"></div>
+    <div id="f1"
+         style="position: absolute; background-color: white; height: 10px; width: 50px; left: 300px; top: 80px"></div>
+    <div id="f2"
+         style="position: absolute; background-color: white; height: 10px; width: 50px; left: 300px; top: 120px"></div>
+    <div id="f3"
+         style="position: absolute; background-color: white; height: 40px; width: 10px; left: 300px; top: 50px"></div>
+    <div id="f4"
+         style="position: absolute; background-color: white; height: 40px; width: 10px; left: 300px; top: 80px"></div>
+    <div id="f5"
+         style="position: absolute; background-color: white; height: 40px; width: 10px; left: 340px; top: 50px"></div>
+    <div id="f6"
+         style="position: absolute; background-color: white; height: 40px; width: 10px; left: 340px; top: 80px"></div>
+
+    <div id="l0"
+         style="position: absolute; background-color: white; height: 10px; width: 50px; left: 460px; top: 40px"></div>
+    <div id="l1"
+         style="position: absolute; background-color: white; height: 10px; width: 50px; left: 460px; top: 80px"></div>
+    <div id="l2"
+         style="position: absolute; background-color: white; height: 10px; width: 50px; left: 460px; top: 120px"></div>
+    <div id="l3"
+         style="position: absolute; background-color: white; height: 40px; width: 10px; left: 460px; top: 50px"></div>
+    <div id="l4"
+         style="position: absolute; background-color: white; height: 40px; width: 10px; left: 460px; top: 80px"></div>
+    <div id="l5"
+         style="position: absolute; background-color: white; height: 40px; width: 10px; left: 500px; top: 50px"></div>
+    <div id="l6"
+         style="position: absolute; background-color: white; height: 40px; width: 10px; left: 500px; top: 80px"></div>
+
+    <div id="first" style="position: absolute; background-color: white; width: 10px; height: 80px; left: 20px"></div>
+    <div id="last" style="position: absolute; background-color: white; width: 10px; height: 80px; right: 20px"></div>
+    <div id="ball" style="position: absolute; background-color: white; width: 10px; height: 10px;"></div>
+    <div style="position: absolute; width: 0px; height: 600px; left:400px; border-left: 10px dashed white;"></div>
+</div>
+<script type="text/javascript">
+    try {
+        var Ws = window.MozWebSocket || window.WebSocket,
+                ws = new Ws("ws://192.168.3.15:9080/html5/echo"),
+                //ws = new Ws("ws://localhost:8080/html5/echo"),
+                sent, count, total, first = true,
+                font = [125, 96, 55, 103, 106, 79, 95, 97, 127, 111];
+        ws.onopen = function (e) {
+            document.getElementById('msg').firstChild.data = 'socket open';
+        };
+        ws.onclose = function (e) {
+            document.getElementById('msg').firstChild.data = 'socket closed';
+        };
+        ws.onerror = function (e) {
+            document.getElementById('msg').firstChild.data = 'socket error: ' + e;
+        };
+        ws.onmessage = function (msg) {
+            var parts = msg.data.split(',');
+            first = (parts[0] === 'f');
+            document.getElementById('first').style.top = (+parts[1]);
+            document.getElementById('last').style.top = (+parts[2]);
+            document.getElementById('ball').style.left = (+parts[3]);
+            document.getElementById('ball').style.top = (+parts[4]);
+            ws.show((+parts[5]) % 10, true);
+            ws.show((+parts[6]) % 10, false);
+        };
+        ws.show = function (n, first) {
+            for (var i = 0; i < 7; i++) {
+                document.getElementById((first ? 'f' : 'l') + i).style.backgroundColor = (font[n] & (1 << i)) ? 'white' : 'black';
+            }
+        };
+        ws.show(0, true);
+        ws.show(0, false);
+    } catch (e) {
+        alert(e);
+    }
+    function move(event) {
+        var e = event || window.event;
+        ws.send('pos:' + (e.clientY - document.getElementById('screen').offsetTop));
+    }
+</script>
+
+</body>
+</html>
